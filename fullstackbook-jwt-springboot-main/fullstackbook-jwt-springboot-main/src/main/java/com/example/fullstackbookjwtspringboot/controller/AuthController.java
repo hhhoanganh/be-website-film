@@ -6,9 +6,11 @@ import com.example.fullstackbookjwtspringboot.dto.SignUpRequest;
 import com.example.fullstackbookjwtspringboot.model.ERole;
 import com.example.fullstackbookjwtspringboot.model.Role;
 import com.example.fullstackbookjwtspringboot.model.User;
+import com.example.fullstackbookjwtspringboot.model.UserProfile;
 import com.example.fullstackbookjwtspringboot.repository.RoleRepository;
 import com.example.fullstackbookjwtspringboot.repository.UserRepository;
 import com.example.fullstackbookjwtspringboot.service.UserDetailsImpl;
+import com.example.fullstackbookjwtspringboot.service.UserProfileService;
 import com.example.fullstackbookjwtspringboot.util.JwtUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,23 +25,26 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
     private final UserRepository userRepository;
+    private final UserProfileService userProfileService;
     private RoleRepository roleRepository;
     private PasswordEncoder passwordEncoder;
     private AuthenticationManager authenticationManager;
     private JwtUtil jwtUtil;
 
     public AuthController(UserRepository userRepository,
-                          PasswordEncoder passwordEncoder,
+                          UserProfileService userProfileService, PasswordEncoder passwordEncoder,
                           RoleRepository roleRepository,
                           AuthenticationManager authenticationManager,
                           JwtUtil jwtUtil) {
         this.userRepository = userRepository;
+        this.userProfileService = userProfileService;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
@@ -71,6 +76,13 @@ public class AuthController {
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("email is already taken");
         }
+        String regexPattern = "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@"
+                + "[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$";
+        if(!Pattern.compile(regexPattern).matcher(signUpRequest.getEmail()).matches())
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("email is not validate");
+        String regexPassword = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$";
+        if(!Pattern.compile(regexPassword).matcher(signUpRequest.getPassword()).matches())
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("password is not validate");
         String hashedPassword = passwordEncoder.encode(signUpRequest.getPassword());
         Set<Role> roles = new HashSet<>();
         Optional<Role> userRole = roleRepository.findByName(ERole.ROLE_USER);
@@ -84,6 +96,12 @@ public class AuthController {
         user.setPassword(hashedPassword);
         user.setRoles(roles);
         userRepository.save(user);
+        UserProfile userProfile = new UserProfile(user.getId());
+        userProfileService.save(userProfile);
         return ResponseEntity.ok("User registered success");
+    }
+    @PostMapping("/user/{id}")
+    public UserProfile updateProfile(@PathVariable("id")Long id, @RequestBody UserProfile userProfile){
+        return userProfileService.updateUser(id,userProfile);
     }
 }

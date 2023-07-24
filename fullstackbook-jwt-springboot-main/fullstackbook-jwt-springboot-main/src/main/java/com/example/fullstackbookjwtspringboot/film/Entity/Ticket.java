@@ -1,5 +1,6 @@
 package com.example.fullstackbookjwtspringboot.film.Entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,6 +10,7 @@ import javax.persistence.*;
 @Table(name= "tickets")
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class Ticket {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,8 +27,10 @@ public class Ticket {
     private String filmname;
     @Column(name= "cinema_name")
     private String cinemaName;
+    @Column(name="time")
+    private String time;
 
-    public Ticket( Long idUser, Long idFilm, Long idRap, String codeTicket, String filmname, String cinemaName) {
+    public Ticket( Long idUser, Long idFilm, Long idRap, String codeTicket, String filmname, String cinemaName,String time) {
         this.id = id;
         this.idUser = idUser;
         this.idFilm = idFilm;
@@ -34,6 +38,7 @@ public class Ticket {
         this.codeTicket = codeTicket;
         this.filmname = filmname;
         this.cinemaName = cinemaName;
+        this.time=time;
     }
 
     public Long getId() {

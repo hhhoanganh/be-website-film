@@ -10,11 +10,22 @@ public class CinemaDTO {
 
     private String hotline;
 
-    public CinemaDTO(int id, String name, String address, String hotline) {
+    private String cinemaType;
+
+    public String getCinemaType() {
+        return cinemaType;
+    }
+
+    public void setCinemaType(String cinemaType) {
+        this.cinemaType = cinemaType;
+    }
+
+    public CinemaDTO(int id, String name, String address, String hotline, String cinemaType) {
         this.id = id;
         this.name = name;
         this.address = address;
         this.hotline = hotline;
+        this.cinemaType=cinemaType;
     }
 
 

@@ -51,13 +51,19 @@ public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.headers()
+                .xssProtection()
+                .and()
+                .contentSecurityPolicy("script-src 'self'");
         http.cors().and().csrf().disable()
                 .exceptionHandling().authenticationEntryPoint(authEntryPointJwt).and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
                 .authorizeRequests()
                 .antMatchers("/api/auth/**").permitAll()
-                .antMatchers("/api/cinema/**").permitAll()
+                .antMatchers("/cinema/**").permitAll()
+                .antMatchers("/coordinates/**").permitAll()
                 .antMatchers("/film/**").permitAll()
+                .antMatchers("/api/userprofile/**").permitAll()
                 .antMatchers("/ticket/**").permitAll()
                 .antMatchers("/api/test/**").permitAll()
                 .anyRequest().authenticated();

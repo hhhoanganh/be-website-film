@@ -3,6 +3,7 @@ package com.example.fullstackbookjwtspringboot.controller;
 import com.example.fullstackbookjwtspringboot.model.User;
 import com.example.fullstackbookjwtspringboot.service.UserDetailsImpl;
 import com.example.fullstackbookjwtspringboot.service.UserDetailsServiceImpl;
+import com.example.fullstackbookjwtspringboot.service.UserProfileService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,8 +21,12 @@ import java.util.Map;
 @Log4j2
 public class TestController {
     private UserDetailsServiceImpl userService;
-    public TestController(UserDetailsServiceImpl userservice){
+    private UserProfileService userProfileService;
+
+    public TestController(UserDetailsServiceImpl userservice,UserProfileService userProfileService){
+
         this.userService=userservice;
+        this.userProfileService= userProfileService;
     }
     @GetMapping("/all")
     public String allAccess() {
@@ -72,7 +77,9 @@ public class TestController {
     @PreAuthorize("hasRole('SUPERADMIN')")
     public ResponseEntity<Map<String, Boolean>> deleteUser(@PathVariable("id") Long id){
         boolean deleted = false;
+        userProfileService.deleteUser(id);
         deleted = userService.deleteUser(id);
+
         Map<String, Boolean> response = new HashMap<>();
         response.put("deleted", deleted);
         return ResponseEntity.ok(response);
