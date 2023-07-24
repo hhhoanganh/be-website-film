@@ -5,7 +5,6 @@ import com.example.fullstackbookjwtspringboot.film.Repo.FilmCinemaRepo;
 import com.example.fullstackbookjwtspringboot.film.Service.FilmCinemaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 @Service
 @RequiredArgsConstructor
 public class FilmCinemaImpl implements FilmCinemaService {

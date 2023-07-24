@@ -1,20 +1,22 @@
 package com.example.fullstackbookjwtspringboot.film.Service.Impl;
 
 
-import com.example.fullstackbookjwtspringboot.film.Dto.CinemaDTO;
-import com.example.fullstackbookjwtspringboot.film.Dto.FilmCinemaDTO;
-import com.example.fullstackbookjwtspringboot.film.Dto.FilmDTO;
+import com.example.fullstackbookjwtspringboot.film.Dto.*;
 import com.example.fullstackbookjwtspringboot.film.Entity.Cinema;
 import com.example.fullstackbookjwtspringboot.film.Entity.Film;
+import com.example.fullstackbookjwtspringboot.film.Entity.FilmCinema;
 import com.example.fullstackbookjwtspringboot.film.Repo.CinemaRepo;
+import com.example.fullstackbookjwtspringboot.film.Repo.FilmCinemaRepo;
 import com.example.fullstackbookjwtspringboot.film.Repo.FilmRepo;
 import com.example.fullstackbookjwtspringboot.film.Service.CinemaService;
 import com.example.fullstackbookjwtspringboot.film.Service.FilmService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +29,8 @@ public class Implement implements FilmService, CinemaService {
 
     private final CinemaRepo cinemaRepo;
 
+    private final FilmCinemaRepo filmCinemaRepo;
+
 
 
     @Override
@@ -38,59 +42,27 @@ public class Implement implements FilmService, CinemaService {
     }
 
 
-    @Override
-    public Cinema addCinema(CinemaDTO cinemaDTO){
-        log.info("save rap");
-        Cinema cinema = new Cinema(cinemaDTO.getName(), cinemaDTO.getAddress(), cinemaDTO.getHotline());
-        return cinemaRepo.save(cinema);
-    }
+
 
     @Override
-    public List<Cinema> getAllCinema() {
-        return cinemaRepo.findAll();
-    }
-
-    @Override
-    public int findIdCinemaByName(String name) throws SQLException {
-        Connection con=DriverManager.getConnection("jdbc:mysql://localhost:3306/loginrole","root","password");
-        Statement stmt=con.createStatement();
-        String sql="SELECT id FROM filmcinema.cinema WHERE name = \""+ name+"\";";
-        //Film film=filmRepo.findByName(filmDTO.getName());
-        ResultSet rs= stmt.executeQuery(sql);
-        rs.next();
-        int idx=rs.getInt(1);
-        con.close();
+    public int findIdFilmByName(String name)  {
+        int idx=filmRepo.findIdFilmByName(name);
         return idx;
     }
 
     @Override
-    public Cinema getCinemaById(Long idRap) {
-        Cinema cinema= cinemaRepo.findById(Math.toIntExact(idRap));
-        return cinema;
-    }
+    public List<FilmDTO> getAllFilms(Integer pageNo, Integer pageSize) {
+        Pageable paging  = PageRequest.of(pageNo-1,pageSize);
+        Page<Film> pageResult = filmRepo.findAll(paging);
+        List<FilmDTO> filmDTOList = new ArrayList<>();
+        if(pageResult.hasContent()){
 
-    @Override
-    public int findIdFilmByName(String name) throws SQLException {
-        Connection con=DriverManager.getConnection("jdbc:mysql://localhost:3306/loginrole","root","password");
-        Statement stmt=con.createStatement();
-        String sql="SELECT id FROM filmcinema.film WHERE name = \""+ name+"\";";
-        //Film film=filmRepo.findByName(filmDTO.getName());
-        ResultSet rs= stmt.executeQuery(sql);
-        rs.next();
-        int idx=rs.getInt(1);
-        con.close();
-        return idx;
-    }
-
-    @Override
-    public List<FilmDTO> getAllFilms() {
-        List<Film> film=filmRepo.findAll();
-        List<FilmDTO> films=new ArrayList<>();
-        for(Film obj:film){
-            FilmDTO filmDTO = new FilmDTO(obj.getId(), obj.getName(), obj.getLinkimage(), obj.getPrice(), obj.getCategory(), obj.getDesciption());
-            films.add(filmDTO);
+                for(Film obj: pageResult.getContent()){
+                    FilmDTO filmDTO=new FilmDTO(obj.getId(), obj.getName(), obj.getLinkimage(), obj.getPrice(), obj.getCategory(), obj.getDesciption());
+                    filmDTOList.add(filmDTO);
+                }
         }
-        return films;
+        return filmDTOList;
     }
 
     @Override
@@ -100,43 +72,147 @@ public class Implement implements FilmService, CinemaService {
     }
 
     @Override
-    public List<FilmCinemaDTO> getDetailByIdFilm(Long idFilm) throws SQLException {
-
-        Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/loginrole", "root", "password");
-        Statement stmt = con.createStatement();
-        String sql = "SELECT * FROM filmcinema.film_to_cinema WHERE id_film = \"" + idFilm + "\";";
-        //Film film=filmRepo.findByName(filmDTO.getName());
-        ResultSet rs = stmt.executeQuery(sql);
+    public List<FilmCinemaDTO> getListDetailByIdFilm(Long idFilm,Long number)  {
+        Pageable pageable = PageRequest.of(Math.toIntExact(number)-1,10);
+        List<FilmCinema> filmCinemaList=filmCinemaRepo.getListDetailByIdFilm(Math.toIntExact(idFilm),pageable);
         List<FilmCinemaDTO> filmCinemaDTO = new ArrayList<>();
-        while (rs.next()){
-            int idx = rs.getInt(3);
-            int idCinema = rs.getInt(2);
-             String time = rs.getString(4);
-             String filmName = rs.getString(5);
-             String cinemaName = rs.getString(6);
-             FilmCinemaDTO film = new FilmCinemaDTO(idx, Math.toIntExact(idFilm), idCinema, time, filmName, cinemaName);
-             filmCinemaDTO.add(film);
+        for(FilmCinema obj: filmCinemaList){
+            FilmCinemaDTO filmCinemaDTO1= new FilmCinemaDTO(obj.getId(), obj.getIdFilm(), obj.getIdCinema(), obj.getTime(), obj.getNameFilm(), obj.getNameCinema());
+            filmCinemaDTO.add(filmCinemaDTO1);
         }
-        con.close();
+
         return filmCinemaDTO;
     }
     @Override
-    public FilmCinemaDTO getDetailByIdCinema(Long idCinema) throws SQLException {
+    public int getCountListDetailByIdFilm(Long idFilm) {
+        int size =filmCinemaRepo.getCountListDetailByIdFilm(Math.toIntExact(idFilm));
+        return size;
+    }
 
-        Connection con=DriverManager.getConnection("jdbc:mysql://localhost:3306/loginrole","root","password");
-        Statement stmt=con.createStatement();
-        String sql="SELECT * FROM filmcinema.film_to_cinema WHERE id_cinema = \""+ idCinema+"\";";
-        //Film film=filmRepo.findByName(filmDTO.getName());
-        ResultSet rs= stmt.executeQuery(sql);
-        rs.next();
-        int idx=rs.getInt(3);
-        int idFilm= rs.getInt(1);
-        String time = rs.getString(4);
-        String filmName= rs.getString(5);
-        String cinemaName= rs.getString(6);
-        con.close();
-        FilmCinemaDTO film = new FilmCinemaDTO(idx, idFilm,Math.toIntExact(idCinema),time,filmName,cinemaName);
+    @Override
+    public long getCountFilm() {
+        return filmRepo.count();
+    }
+
+    @Override
+    public List<FilmDTO> findByValue(SearchFilmDTO searchFilmDTO) {
+        Pageable pageable= PageRequest.of(searchFilmDTO.getPageNo()-1,10);
+        List<Film> filmList=filmRepo.findByValue(searchFilmDTO.getValue(), searchFilmDTO.getCategory(), pageable );
+        List<FilmDTO> filmDTOS= new ArrayList<>();
+        for(Film obj:filmList){
+            FilmDTO filmDTO=new FilmDTO(obj.getId(), obj.getName(), obj.getLinkimage(), obj.getPrice(), obj.getCategory(), obj.getDesciption());
+            filmDTOS.add(filmDTO);
+        }
+
+        return filmDTOS;
+    }
+
+    @Override
+    public int getNumberOfRecord(SearchFilmDTO searchFilmDTO) {
+        int numberRecord = filmRepo.getNumberOfRecord(searchFilmDTO.getValue(), searchFilmDTO.getCategory());
+        return numberRecord;
+    }
+
+    @Override
+    public List<FilmDTO> findByValue(String value) {
+
+        List<Film> filmList = filmRepo.findByValue(value);
+        List<FilmDTO> filmDTOS= new ArrayList<>();
+        for(Film obj:filmList){
+            FilmDTO filmDTO=new FilmDTO(obj.getId(), obj.getName(), obj.getLinkimage(), obj.getPrice(), obj.getCategory(), obj.getDesciption());
+            filmDTOS.add(filmDTO);
+        }
+        return filmDTOS;
+    }
+
+    @Override
+    public FilmCinemaDTO getDetailByIdCinema(Long idCinema) {
+
+        FilmCinema filmCinema=filmCinemaRepo.getDetailByIdCinema(Math.toIntExact(idCinema));
+        FilmCinemaDTO film = new FilmCinemaDTO(filmCinema.getId(),filmCinema.getIdFilm(),filmCinema.getIdCinema(),filmCinema.getTime(),filmCinema.getNameFilm(),filmCinema.getNameCinema());
         return film;
+    }
+    /*------------------------------------------------------------------------------------------------------------------*/
+    //cinema
+
+    @Override
+    public List<CinemaDTO> getAllCinema(int pageNo, int pageSize) {
+        Pageable paging  = PageRequest.of(pageNo-1,pageSize);
+        Page<Cinema> pageResult = cinemaRepo.findAll(paging);
+        List<CinemaDTO> cinemaDTOS = new ArrayList<>();
+        if(pageResult.hasContent()){
+
+            for(Cinema obj: pageResult.getContent()){
+                CinemaDTO cinemaDTO = new CinemaDTO(obj.getId(), obj.getName(), obj.getAddress(), obj.getHotline(), obj.getCinemaType());
+                cinemaDTOS.add(cinemaDTO);
+            }
+        }
+        return cinemaDTOS;
+    }
+
+    @Override
+    public int getCountCinema() {
+        return (int) cinemaRepo.count();
+    }
+
+    @Override
+    public List<CinemaDTO> findAllCinema(SearchCinemaDTO searchCinemaDTO) {
+        Pageable pageable = PageRequest.of(searchCinemaDTO.getPageNo()-1, 10);
+        List<Cinema> cinemaList=cinemaRepo.findAllCinema(searchCinemaDTO.getValue(), searchCinemaDTO.getCinematype(), pageable);
+        List<CinemaDTO> cinemaDTOS= new ArrayList<>();
+        for(Cinema obj:cinemaList){
+            CinemaDTO cinemaDTO = new CinemaDTO(obj.getId(), obj.getName(), obj.getAddress(), obj.getHotline(), obj.getCinemaType());
+            cinemaDTOS.add(cinemaDTO);
+        }
+
+        return cinemaDTOS;
+    }
+
+    @Override
+    public int getNumberOfRecordCinema(SearchCinemaDTO searchCinemaDTO) {
+        int numberRecord = cinemaRepo.getNumberOfRecordCinema(searchCinemaDTO.getValue(),searchCinemaDTO.getCinematype());
+        return numberRecord;
+    }
+
+    @Override
+    public List<FilmCinemaDTO> getListDetailByIdCinema(Long id,Long number) {
+        Pageable pageable = PageRequest.of(Math.toIntExact(number)-1, 10);
+        List<FilmCinema> filmCinemaList = filmCinemaRepo.getListDetailByIdCinema(Math.toIntExact(id),pageable);
+        List<FilmCinemaDTO> filmCinemaDTOList = new ArrayList<>();
+        for(FilmCinema obj:filmCinemaList){
+            FilmCinemaDTO filmCinemaDTO = new FilmCinemaDTO(obj.getId(), obj.getIdFilm(), obj.getIdCinema(), obj.getTime(), obj.getNameFilm(), obj.getNameCinema());
+            filmCinemaDTOList.add(filmCinemaDTO);
+        }
+        return filmCinemaDTOList;
+    }
+    @Override
+    public int getCountListDetailByIdCinema(Long id) {
+        int size=filmCinemaRepo.getCountListDetailByIdCinema(Math.toIntExact(id));
+        return size;
+    }
+
+    @Override
+    public Cinema addCinema(CinemaDTO cinemaDTO){
+        log.info("save rap");
+        Cinema cinema = new Cinema(cinemaDTO.getName(), cinemaDTO.getAddress(), cinemaDTO.getHotline(), cinemaDTO.getCinemaType());
+        return cinemaRepo.save(cinema);
+    }
+
+    @Override
+    public List<Cinema> getAllCinema() {
+        return cinemaRepo.findAll();
+    }
+
+    @Override
+    public int findIdCinemaByName(String name) {
+        int idx=cinemaRepo.findIdCinemaByName(name);
+        return idx;
+    }
+
+    @Override
+    public Cinema getCinemaById(Long idRap) {
+        Cinema cinema= cinemaRepo.findById(Math.toIntExact(idRap));
+        return cinema;
     }
 
 }

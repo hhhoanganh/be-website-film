@@ -21,7 +21,7 @@ public class TicketImpl implements TicketService {
     public Ticket addTicket(TicketDTO ticketDTO) {
         log.info("save ticket");
         String ticketCode=ticketDTO.getIdUser()+""+ticketDTO.getIdFilm()+""+ ticketDTO.getIdRap();
-        Ticket ticket = new Ticket(ticketDTO.getIdUser(),ticketDTO.getIdFilm(), ticketDTO.getIdRap(), ticketCode,ticketDTO.getFilmName(),ticketDTO.getCinemaName());
+        Ticket ticket = new Ticket(ticketDTO.getIdUser(),ticketDTO.getIdFilm(), ticketDTO.getIdRap(), ticketCode,ticketDTO.getFilmName(),ticketDTO.getCinemaName(), ticketDTO.getTime());
         return ticketRepo.save(ticket);
     }
 
@@ -34,7 +34,25 @@ public class TicketImpl implements TicketService {
 
     @Override
     public List<TicketDTO> findByIdUser(Long id) throws SQLException {
-        List<TicketDTO> tickets = ticketRepo.findAllById(id);
+        Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/loginrole", "root", "password");
+        Statement stmt = con.createStatement();
+        String sql = "SELECT * FROM loginrole.tickets WHERE id_user = \"" + id + "\";";
+        //Film film=filmRepo.findByName(filmDTO.getName());
+        ResultSet rs = stmt.executeQuery(sql);
+        List<TicketDTO> tickets = new ArrayList<>();
+        while (rs.next()){
+            Long idx = rs.getLong(1);
+            Long idUser = rs.getLong(2);
+            Long idFilm = rs.getLong(3);
+            Long idCinema = rs.getLong(4);
+            String codeticket = rs.getString(5);
+            String filmName = rs.getString(6);
+            String cinemaName = rs.getString(7);
+            String time = rs.getString(8);
+            TicketDTO ticketDTO = new TicketDTO(idx,idUser,idFilm,idCinema,codeticket,filmName,cinemaName,time);
+            tickets.add(ticketDTO);
+        }
+        con.close();
         return tickets;
     }
 }

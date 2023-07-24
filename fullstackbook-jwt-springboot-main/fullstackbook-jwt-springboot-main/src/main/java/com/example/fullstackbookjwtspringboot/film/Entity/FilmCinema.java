@@ -1,8 +1,9 @@
 package com.example.fullstackbookjwtspringboot.film.Entity;
 
-import javax.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import javax.persistence.*;
 
 @Entity
 @Table(name= "film_to_cinema")
@@ -22,6 +23,7 @@ public class FilmCinema {
     private String nameFilm;
     @Column(name="namecinema")
     private String nameCinema;
+
 
     public FilmCinema(int idFilm, int idCinema, String time, String nameFilm, String nameCinema) {
         this.idFilm = idFilm;

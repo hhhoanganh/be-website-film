@@ -1,7 +1,5 @@
 package com.example.fullstackbookjwtspringboot.film.Dto;
 
-import javax.persistence.Column;
-
 public class TicketDTO {
 
     private Long id;
@@ -16,8 +14,9 @@ public class TicketDTO {
 
     private String filmName;
     private String cinemaName;
+    private String time;
 
-    public TicketDTO(Long id, Long idUser, Long idFilm, Long idRap, String codeTicket, String filmName, String cinemaName) {
+    public TicketDTO(Long id, Long idUser, Long idFilm, Long idRap, String codeTicket, String filmName, String cinemaName, String time) {
         this.id = id;
         this.idUser = idUser;
         this.idFilm = idFilm;
@@ -25,6 +24,7 @@ public class TicketDTO {
         this.codeTicket = codeTicket;
         this.filmName = filmName;
         this.cinemaName = cinemaName;
+        this.time=time;
     }
 
     public TicketDTO(Long id, Long idUser, Long idFilm, Long idRap, String filmName, String cinemaName) {
@@ -93,6 +93,18 @@ public class TicketDTO {
 
     public void setCodeTicket(String codeTicket) {
         this.codeTicket = codeTicket;
+    }
+
+    public void setFilmName(String filmName) {
+        this.filmName = filmName;
+    }
+
+    public String getTime() {
+        return time;
+    }
+
+    public void setTime(String time) {
+        this.time = time;
     }
 
     @Override

@@ -1,8 +1,9 @@
 package com.example.fullstackbookjwtspringboot.film.Entity;
 
-import javax.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import javax.persistence.*;
 
 
 @Entity
@@ -20,9 +21,13 @@ public class Cinema {
     @Column(name = "hotline")
     private String hotline;
 
-    public Cinema(String name, String address, String hotline) {
+    @Column(name="cinematype")
+    private String cinemaType;
+
+    public Cinema(String name, String address, String hotline, String cinemaType) {
         this.name = name;
         this.address = address;
         this.hotline = hotline;
+        this.cinemaType=cinemaType;
     }
 }

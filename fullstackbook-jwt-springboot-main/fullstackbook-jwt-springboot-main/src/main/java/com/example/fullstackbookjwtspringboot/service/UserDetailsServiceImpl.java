@@ -5,6 +5,7 @@ import com.example.fullstackbookjwtspringboot.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.List;
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
     private UserRepository userRepository;
+    private PasswordEncoder passwordEncoder;
 
     public UserDetailsServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -43,7 +45,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         User user1 = userRepository.findById(id).get();
         user1.setUsername(user.getUsername());
         user1.setEmail(user.getEmail());
-        user1.setPassword(user.getPassword());
+        user1.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user1);
         return user1;
     }
