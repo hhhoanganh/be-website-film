@@ -54,6 +54,7 @@ public class UserProfileService {
 
     public void deleteUser(Long id) {
        UserProfile userProfile= userProfileRepo.findById(id).get();
+       if (userProfile != null)
        userProfileRepo.delete(userProfile);
     }
 }

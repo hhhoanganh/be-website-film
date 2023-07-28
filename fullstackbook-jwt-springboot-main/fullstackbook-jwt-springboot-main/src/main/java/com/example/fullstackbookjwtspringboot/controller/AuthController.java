@@ -70,22 +70,26 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@RequestBody SignUpRequest signUpRequest) {
+        if (signUpRequest.getUsername().length()<6){
+            return  ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username is not validate");
+        }
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("username is already taken");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username is already taken");
         }
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("email is already taken");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email is already taken");
         }
         String regexPattern = "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@"
                 + "[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$";
-        if(!Pattern.compile(regexPattern).matcher(signUpRequest.getEmail()).matches())
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("email is not validate");
+        if (!Pattern.compile(regexPattern).matcher(signUpRequest.getEmail()).matches())
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email is not validate");
         String regexPassword = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$";
-        if(!Pattern.compile(regexPassword).matcher(signUpRequest.getPassword()).matches())
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("password is not validate");
+        if (!Pattern.compile(regexPassword).matcher(signUpRequest.getPassword()).matches())
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Password is not validate");
         String hashedPassword = passwordEncoder.encode(signUpRequest.getPassword());
         Set<Role> roles = new HashSet<>();
         Optional<Role> userRole = roleRepository.findByName(ERole.ROLE_USER);
+
         if (userRole.isEmpty()) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("role not found");
         }
