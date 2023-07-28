@@ -55,4 +55,9 @@ public class TicketImpl implements TicketService {
         con.close();
         return tickets;
     }
+
+    @Override
+    public void deleteTicketByIdUser(Long id) {
+        ticketRepo.deleteAllByUserId(id);
+    }
 }

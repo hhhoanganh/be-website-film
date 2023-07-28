@@ -12,4 +12,6 @@ public interface TicketService {
     boolean deleteTicket(Long id);
 
     List<TicketDTO> findByIdUser(Long id) throws SQLException;
+
+    void deleteTicketByIdUser(Long id);
 }
